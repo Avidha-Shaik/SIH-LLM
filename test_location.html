@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test Location-Based College Search</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div style="padding: 2rem; max-width: 1200px; margin: 0 auto">
+      <h1>Test Location-Based College Search</h1>
+
+      <div class="card">
+        <h3>Test with Your Location</h3>
+        <button id="test-my-location" class="btn btn-primary">
+          Test with My Location
+        </button>
+        <p id="location-status"></p>
+        <div
+          id="debug-info"
+          style="
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            display: none;
+          "
+        >
+          <h4>Debug Information:</h4>
+          <div id="debug-content"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Test with Specific Coordinates</h3>
+        <div class="form-group">
+          <label for="test-lat">Latitude:</label>
+          <input
+            type="number"
+            id="test-lat"
+            step="0.000001"
+            placeholder="e.g., 19.0760"
+            value="19.0760"
+          />
+        </div>
+        <div class="form-group">
+          <label for="test-lon">Longitude:</label>
+          <input
+            type="number"
+            id="test-lon"
+            step="0.000001"
+            placeholder="e.g., 72.8777"
+            value="72.8777"
+          />
+        </div>
+        <button id="test-coordinates" class="btn btn-primary">
+          Test with These Coordinates
+        </button>
+        <button id="test-fallback" class="btn" style="margin-left: 1rem">
+          Test Fallback System
+        </button>
+        <button id="test-distance" class="btn" style="margin-left: 1rem">
+          Test Distance Calculation
+        </button>
+      </div>
+
+      <div id="results" class="card" style="display: none">
+        <h3>Results</h3>
+        <div id="results-content"></div>
+      </div>
+    </div>
+
+    <script>
+      const testMyLocationBtn = document.getElementById("test-my-location");
+      const testCoordinatesBtn = document.getElementById("test-coordinates");
+      const testFallbackBtn = document.getElementById("test-fallback");
+      const testDistanceBtn = document.getElementById("test-distance");
+      const locationStatus = document.getElementById("location-status");
+      const results = document.getElementById("results");
+      const resultsContent = document.getElementById("results-content");
+      const debugInfo = document.getElementById("debug-info");
+      const debugContent = document.getElementById("debug-content");
+
+      function getBrowserLocation() {
+        return new Promise((resolve, reject) => {
+          if (!navigator.geolocation) {
+            reject(new Error("Geolocation not supported"));
+            return;
+          }
+          navigator.geolocation.getCurrentPosition(
+            (pos) =>
+              resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+            (err) => reject(err),
+            { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+          );
+        });
+      }
+
+      async function testLocation(latitude, longitude) {
+        try {
+          locationStatus.textContent = "Testing location...";
+          debugInfo.style.display = "block";
+          debugContent.innerHTML = `Testing coordinates: ${latitude}, ${longitude}<br>`;
+
+          const response = await fetch("http://127.0.0.1:5000/test-location", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ latitude, longitude }),
+          });
+
+          const data = await response.json();
+          debugContent.innerHTML += `Response status: ${response.status}<br>`;
+          debugContent.innerHTML += `Response data: ${JSON.stringify(
+            data,
+            null,
+            2
+          )}<br>`;
+
+          if (data.error) {
+            locationStatus.textContent = `Error: ${data.error}`;
+            return;
+          }
+
+          locationStatus.textContent = `Found ${data.count} colleges within 30km`;
+
+          // Display results
+          results.style.display = "block";
+          resultsContent.innerHTML = "";
+
+          if (data.colleges.length === 0) {
+            resultsContent.innerHTML =
+              "<p>No colleges found within 30km. This might be due to:</p><ul><li>Geoapify API key not set</li><li>No educational institutions in the area</li><li>API rate limiting</li><li>Network issues</li></ul><p>Check the debug information above for more details.</p>";
+            return;
+          }
+
+          data.colleges.forEach((college, index) => {
+            const div = document.createElement("div");
+            div.className = "result-card";
+            div.innerHTML = `
+                        <h3>${college.name}</h3>
+                        <p><strong>Address:</strong> ${college.address}</p>
+                        <p><strong>Distance:</strong> ${
+                          college.distance
+                            ? college.distance.toFixed(1) + " km"
+                            : "Unknown"
+                        }</p>
+                        ${
+                          college.website
+                            ? `<p><strong>Website:</strong> <a href="${college.website}" target="_blank">${college.website}</a></p>`
+                            : ""
+                        }
+                        ${
+                          college.phone
+                            ? `<p><strong>Phone:</strong> ${college.phone}</p>`
+                            : ""
+                        }
+                        <p><strong>Categories:</strong> ${college.categories.join(
+                          ", "
+                        )}</p>
+                    `;
+            resultsContent.appendChild(div);
+          });
+        } catch (error) {
+          locationStatus.textContent = `Error: ${error.message}`;
+          console.error("Error testing location:", error);
+        }
+      }
+
+      testMyLocationBtn.addEventListener("click", async () => {
+        try {
+          const coords = await getBrowserLocation();
+          await testLocation(coords.lat, coords.lon);
+        } catch (error) {
+          locationStatus.textContent = `Location error: ${error.message}`;
+        }
+      });
+
+      testCoordinatesBtn.addEventListener("click", () => {
+        const lat = parseFloat(document.getElementById("test-lat").value);
+        const lon = parseFloat(document.getElementById("test-lon").value);
+
+        if (isNaN(lat) || isNaN(lon)) {
+          locationStatus.textContent = "Please enter valid coordinates";
+          return;
+        }
+
+        testLocation(lat, lon);
+      });
+
+      testFallbackBtn.addEventListener("click", async () => {
+        const lat = parseFloat(document.getElementById("test-lat").value);
+        const lon = parseFloat(document.getElementById("test-lon").value);
+
+        if (isNaN(lat) || isNaN(lon)) {
+          locationStatus.textContent = "Please enter valid coordinates";
+          return;
+        }
+
+        try {
+          locationStatus.textContent = "Testing fallback system...";
+          debugInfo.style.display = "block";
+          debugContent.innerHTML = `Testing fallback with coordinates: ${lat}, ${lon}<br>`;
+
+          const response = await fetch("http://127.0.0.1:5000/test-fallback", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              latitude: lat,
+              longitude: lon,
+              radius_km: 30,
+            }),
+          });
+
+          const data = await response.json();
+          debugContent.innerHTML += `Response status: ${response.status}<br>`;
+          debugContent.innerHTML += `Response data: ${JSON.stringify(
+            data,
+            null,
+            2
+          )}<br>`;
+
+          if (data.error) {
+            locationStatus.textContent = `Error: ${data.error}`;
+            return;
+          }
+
+          locationStatus.textContent = `Fallback system found ${data.count} colleges within 30km`;
+
+          // Display results
+          results.style.display = "block";
+          resultsContent.innerHTML = "";
+
+          if (data.colleges.length === 0) {
+            resultsContent.innerHTML =
+              "<p>Fallback system found no colleges. This should not happen!</p>";
+            return;
+          }
+
+          data.colleges.forEach((college, index) => {
+            const div = document.createElement("div");
+            div.className = "result-card";
+            div.innerHTML = `
+               <h3>${college.name}</h3>
+               <p><strong>Address:</strong> ${college.address}</p>
+               <p><strong>Distance:</strong> ${
+                 college.distance
+                   ? college.distance.toFixed(1) + " km"
+                   : "Unknown"
+               }</p>
+               ${
+                 college.website
+                   ? `<p><strong>Website:</strong> <a href="${college.website}" target="_blank">${college.website}</a></p>`
+                   : ""
+               }
+               ${
+                 college.phone
+                   ? `<p><strong>Phone:</strong> ${college.phone}</p>`
+                   : ""
+               }
+               <p><strong>Categories:</strong> ${college.categories.join(
+                 ", "
+               )}</p>
+             `;
+            resultsContent.appendChild(div);
+          });
+        } catch (error) {
+          locationStatus.textContent = `Error: ${error.message}`;
+          console.error("Error testing fallback:", error);
+        }
+      });
+
+      testDistanceBtn.addEventListener("click", async () => {
+        const lat = parseFloat(document.getElementById("test-lat").value);
+        const lon = parseFloat(document.getElementById("test-lon").value);
+
+        if (isNaN(lat) || isNaN(lon)) {
+          locationStatus.textContent = "Please enter valid coordinates";
+          return;
+        }
+
+        try {
+          locationStatus.textContent = "Testing distance calculation...";
+          debugInfo.style.display = "block";
+          debugContent.innerHTML = `Testing distance calculation with coordinates: ${lat}, ${lon}<br>`;
+
+          const response = await fetch("http://127.0.0.1:5000/test-distance", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ latitude: lat, longitude: lon }),
+          });
+
+          const data = await response.json();
+          debugContent.innerHTML += `Response status: ${response.status}<br>`;
+          debugContent.innerHTML += `Response data: ${JSON.stringify(
+            data,
+            null,
+            2
+          )}<br>`;
+
+          if (data.error) {
+            locationStatus.textContent = `Error: ${data.error}`;
+            return;
+          }
+
+          locationStatus.textContent = `Distance calculation test completed`;
+
+          // Display results
+          results.style.display = "block";
+          resultsContent.innerHTML = "";
+
+          const div = document.createElement("div");
+          div.className = "result-card";
+          div.innerHTML = `
+             <h3>Distance Calculation Test Results</h3>
+             <p><strong>Your Location:</strong> ${
+               data.user_location.latitude
+             }, ${data.user_location.longitude}</p>
+             <h4>Distance to Test Colleges:</h4>
+             <ul>
+               ${data.test_results
+                 .map(
+                   (result) =>
+                     `<li><strong>${result.name}:</strong> ${
+                       result.distance_km
+                     }km ${
+                       result.within_30km
+                         ? "✅ (within 30km)"
+                         : "❌ (beyond 30km)"
+                     }</li>`
+                 )
+                 .join("")}
+             </ul>
+           `;
+          resultsContent.appendChild(div);
+        } catch (error) {
+          locationStatus.textContent = `Error: ${error.message}`;
+          console.error("Error testing distance:", error);
+        }
+      });
+    </script>
+  </body>
+</html>

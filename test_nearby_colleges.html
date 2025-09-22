@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test Nearby Colleges Display</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div style="padding: 2rem; max-width: 1200px; margin: 0 auto">
+      <h1>Nearby Colleges Display Test</h1>
+
+      <!-- This is how the nearby colleges section will look -->
+      <div id="nearby-wrapper" class="card" style="display: block">
+        <h3>Nearby Colleges For You</h3>
+        <p class="muted">
+          We used your location to find colleges within your area.
+        </p>
+        <div id="nearby-colleges" class="grid-container">
+          <!-- Sample college cards -->
+          <div class="result-card">
+            <h3>Indian Institute of Technology Bombay</h3>
+            <p><strong>Address:</strong> Powai, Mumbai, Maharashtra 400076</p>
+            <p><strong>Distance:</strong> 2.3 km</p>
+            <p>
+              <strong>Website:</strong>
+              <a href="https://www.iitb.ac.in" target="_blank"
+                >https://www.iitb.ac.in</a
+              >
+            </p>
+            <p><strong>Phone:</strong> +91-22-2572-2545</p>
+            <p>
+              <strong>Categories:</strong> university, education, engineering
+            </p>
+          </div>
+
+          <div class="result-card">
+            <h3>University of Mumbai</h3>
+            <p>
+              <strong>Address:</strong> Kalina, Santacruz East, Mumbai,
+              Maharashtra 400098
+            </p>
+            <p><strong>Distance:</strong> 5.7 km</p>
+            <p>
+              <strong>Website:</strong>
+              <a href="https://mu.ac.in" target="_blank">https://mu.ac.in</a>
+            </p>
+            <p><strong>Phone:</strong> +91-22-2652-3000</p>
+            <p><strong>Categories:</strong> university, education</p>
+          </div>
+
+          <div class="result-card">
+            <h3>St. Xavier's College</h3>
+            <p>
+              <strong>Address:</strong> Mahapalika Marg, Dhobi Talao, Mumbai,
+              Maharashtra 400001
+            </p>
+            <p><strong>Distance:</strong> 8.2 km</p>
+            <p>
+              <strong>Website:</strong>
+              <a href="https://xaviers.edu" target="_blank"
+                >https://xaviers.edu</a
+              >
+            </p>
+            <p><strong>Phone:</strong> +91-22-2262-1300</p>
+            <p><strong>Categories:</strong> college, education, arts</p>
+          </div>
+
+          <div class="result-card">
+            <h3>Narsee Monjee Institute of Management Studies</h3>
+            <p>
+              <strong>Address:</strong> V. L. Mehta Road, JVPD Scheme, Vile
+              Parle West, Mumbai, Maharashtra 400056
+            </p>
+            <p><strong>Distance:</strong> 12.1 km</p>
+            <p>
+              <strong>Website:</strong>
+              <a href="https://www.nmims.edu" target="_blank"
+                >https://www.nmims.edu</a
+              >
+            </p>
+            <p><strong>Phone:</strong> +91-22-4235-5555</p>
+            <p>
+              <strong>Categories:</strong> university, education, management
+            </p>
+          </div>
+
+          <div class="result-card">
+            <h3>H.R. College of Commerce and Economics</h3>
+            <p>
+              <strong>Address:</strong> 123, Dinshaw Wachha Road, Churchgate,
+              Mumbai, Maharashtra 400020
+            </p>
+            <p><strong>Distance:</strong> 15.3 km</p>
+            <p>
+              <strong>Website:</strong>
+              <a href="https://www.hrcollege.edu" target="_blank"
+                >https://www.hrcollege.edu</a
+              >
+            </p>
+            <p><strong>Phone:</strong> +91-22-2204-1234</p>
+            <p><strong>Categories:</strong> college, education, commerce</p>
+          </div>
+        </div>
+      </div>
+
+      <div
+        style="
+          margin-top: 2rem;
+          padding: 1rem;
+          background: #e8f5e8;
+          border-radius: 8px;
+        "
+      >
+        <h3>How It Works:</h3>
+        <ol>
+          <li>User completes the career assessment</li>
+          <li>Browser gets user's location (with permission)</li>
+          <li>Backend calls Geoapify API to find nearby colleges</li>
+          <li>
+            Results are displayed in this section with distance, contact info,
+            and categories
+          </li>
+          <li>Up to 10 colleges are shown within 50km radius</li>
+        </ol>
+      </div>
+    </div>
+  </body>
+</html>
+
